@@ -28,9 +28,15 @@ detect_one(text)  —— 顺序执行，第一个命中即返回，并打 detect
 - **MySQL**：`config.MYSQL`，`MYSQL_ENABLED=1` 时加载（表名/列名可配）；连不上自动降级为只用本地，不报错。
 - 整串精确命中 → 该语种(0.99)；否则按术语覆盖字符数最多的语种返回(0.95)。
 
-### 2. 词表 `dict_vote.py`
+### 2. 词表 `dict_vote.py`（空格语言 / 非空格语言 两路 + 综合判断）
 - 每语种 `resources/dict/<lang>.csv`，行格式 `词,词频`（兼容空格/制表分隔）。
-- 命中词按 `log(1+词频)` 累加得分；需命中数 `>= MIN_DICT_HITS` 且领先次高 `* DICT_MARGIN` 才采纳，否则交给规则层。
+- **两路分别打分**（因为中文/泰语等不能按空格分词）：
+  - 空格语言（en/fr/ru/de…）：整词命中，得到降序结果如 `{"en":40,"fr":5}`。
+  - 非空格语言（zh/zh-Hant/ja/th/lo/km/my/bo…）：子串命中，得到降序结果如 `{"zh":178,"th":3}`。
+  - 两路结果都放进返回的 `dict_scores`。
+- **综合判断**：把两路 top 用“覆盖率”（识别量/对应字符数）放到同一标尺比较，选覆盖率高者。
+  需满足 命中数 `>= MIN_DICT_HITS`、覆盖率 `>= MIN_DICT_COVERAGE`、组内领先次高 `* DICT_MARGIN`、
+  且两路不能势均力敌；任一不满足即视为**不确定 → 返回 None，交给后续规则/模型兜底**。
 
 ### 3. 规则 `rules/`（模块化，每个语种/混合一个脚本）
 繁体与日语改用**“独有字符占比”**强规则（不依赖小词表，更稳）：
@@ -74,7 +80,7 @@ python3 app.py                     # 打开 http://127.0.0.1:5000
 | `CHUNK_SIZE` | `1200` | 超长分块阈值 |
 | `TRAD_RATIO` / `JA_RATIO` | `0.2` / `0.1` | 繁体/日语独有字符占比阈值 |
 | `ZH_EN_MIX_RATIO` | `0.1` | 中英混合判中文的中文占比阈值 |
-| `MIN_DICT_HITS` / `DICT_MARGIN` | `2` / `1.3` | 词表采纳阈值 |
+| `MIN_DICT_HITS` / `DICT_MARGIN` / `MIN_DICT_COVERAGE` | `2` / `1.3` / `0.15` | 词表采纳阈值 |
 | `RESOURCES_DIR` / `INTERVENE_DIR` / `DICT_DIR` | `resources/...` | 资源目录 |
 | `MYSQL_*` | 见 config | MySQL 术语库连接（`MYSQL_ENABLED=1` 启用） |
 | `DEFAULT_MIN_REPEATS` | `3` | 去重默认阈值 |

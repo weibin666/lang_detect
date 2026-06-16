@@ -51,6 +51,8 @@ DICT_DIR = os.environ.get("DICT_DIR", os.path.join(RESOURCES_DIR, "dict"))
 # 命中条目数 >= MIN_DICT_HITS 且 主语种得分 >= 次高 * DICT_MARGIN 才采纳词表结果
 MIN_DICT_HITS = int(os.environ.get("MIN_DICT_HITS", "2"))
 DICT_MARGIN = float(os.environ.get("DICT_MARGIN", "1.3"))
+# 主语种“覆盖率”(识别词数/字符数 占比) 需 >= 此值，否则视为不确定 -> 交给后续/模型
+MIN_DICT_COVERAGE = float(os.environ.get("MIN_DICT_COVERAGE", "0.15"))
 
 # --- MySQL 术语库（强干预，除本地文件外的来源） ---
 # 表结构假设：一张表，至少有 “术语列” 和 “语种列” 两列，可在下方配置列名/表名。

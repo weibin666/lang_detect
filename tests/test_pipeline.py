@@ -13,9 +13,9 @@ needs_model = pytest.mark.skipif(not _HAS_MODEL, reason="lid.176 模型未就绪
 
 # ---------------- detect_type 来源标识 + 四层顺序 ----------------
 @pytest.mark.parametrize("text, lang, detect_type", [
-    ("请用人民币支付，谢谢", "zh", "intervene"),     # 第1层
-    ("hello world today thanks", "en", "dict"),       # 第2层
-    ("これは日本語のテストです。", "ja", "rule"),      # 第3层
+    ("请用人民币支付，谢谢", "zh", "intervene"),       # 第1层
+    ("hello world today thanks", "en", "dict"),         # 第2层
+    ("한국어를 배우고 있습니다 오늘", "ko", "rule"),     # 第3层(无 ko 词表 -> 走规则)
 ])
 def test_layer_and_detect_type(text, lang, detect_type):
     r = pipeline.detect(text)
