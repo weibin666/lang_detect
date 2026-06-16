@@ -34,6 +34,12 @@ DEFAULT_MIN_REPEATS = int(os.environ.get("DEFAULT_MIN_REPEATS", "3"))
 # --- 超长文本分块 + 投票 ---
 CHUNK_SIZE = int(os.environ.get("CHUNK_SIZE", "1200"))  # 超过则按此长度分块投票
 
+# --- 繁体 / 日语 字符占比阈值（基于“独有字符集”占比的强规则） ---
+# 繁体独有字(不与简体共享)占汉字比 > TRAD_RATIO -> zh-Hant
+TRAD_RATIO = float(os.environ.get("TRAD_RATIO", "0.2"))
+# 日语独有字(假名+和製漢字/新字体，不与简繁共享)占CJK比 > JA_RATIO -> ja
+JA_RATIO = float(os.environ.get("JA_RATIO", "0.1"))
+
 # --- 资源目录 ---
 RESOURCES_DIR = os.environ.get("RESOURCES_DIR", os.path.join(BASE_DIR, "resources"))
 INTERVENE_DIR = os.environ.get("INTERVENE_DIR", os.path.join(RESOURCES_DIR, "intervene_data"))

@@ -98,6 +98,46 @@ def zh_variant(text, use_opencc=None):
 
 
 # ---------------------------------------------------------------------------
+# 繁体独有 / 简体独有 字符集（用于占比强规则）
+#   - 繁体独有：不与简体共享的字（香港/台湾繁体通用，二者繁体字集基本一致）。
+#   - 简体独有：不与繁体共享的字。
+# 优先用 OpenCC 全量生成（覆盖最全）：
+#   某字经 t2s 会变 -> 它是“繁体形”，属繁体独有；
+#   某字经 s2t 会变 -> 它是“简体形”，属简体独有。
+# 没装 OpenCC 时退回内置特征字表（_TRAD_CHARS / _SIMP_CHARS）。
+# ---------------------------------------------------------------------------
+def _gen_variant_sets():
+    if opencc_available():
+        try:
+            chars = "".join(chr(c) for c in range(0x4E00, 0x9FFF + 1))
+            to_simp = _opencc("t2s").convert(chars)
+            to_trad = _opencc("s2t").convert(chars)
+            trad_unique = {h for h, s in zip(chars, to_simp) if h != s}
+            simp_unique = {h for h, t in zip(chars, to_trad) if h != t}
+            if trad_unique and simp_unique:
+                return trad_unique, simp_unique
+        except Exception:
+            pass
+    return set(_TRAD_CHARS), set(_SIMP_CHARS)
+
+
+TRAD_UNIQUE, SIMP_UNIQUE = _gen_variant_sets()
+
+# ---------------------------------------------------------------------------
+# 日语独有汉字（和製漢字 kokuji + 新字体 shinjitai），不与简体/繁体共享。
+# 假名(平假名/片假名)本身就是日语独有，单独按 Unicode 区间统计，不放这里。
+# 这里只列“高置信、确定不是中文（简/繁）”的汉字，避免误判中文。
+# ---------------------------------------------------------------------------
+JP_UNIQUE_KANJI = set(
+    "働込畑峠辻匂枠塀凪笹雫躾栃麿俣偲凧喰噺樫畠"      # 和製漢字 kokuji
+    "円図売読駅営観圧価児剣検権楽歓縄説黒歩巻巣帯徳応恵悩戸抜"  # 新字体 shinjitai(与简繁均不同)
+    "気駆鉄広転済薬覚厳"                          # 其他常见新字体
+)
+# 严格保证“日语独有”：剔除与简/繁中文共享(被 OpenCC 认作可转换)的字
+JP_UNIQUE_KANJI -= (TRAD_UNIQUE | SIMP_UNIQUE)
+
+
+# ---------------------------------------------------------------------------
 # 俄语 / 乌克兰语 特征字母
 #   乌克兰语独有: і ї є ґ      俄语独有: ы э ъ ё
 # ---------------------------------------------------------------------------
@@ -159,10 +199,16 @@ def features(text, use_opencc=None):
     kana_set = set(c for c in text if script_of(ord(c)) in ("hiragana", "katakana"))
     genuine_kana = kana_set - BORROWED_KANA
 
-    # 简繁：特征字命中数（用于“简繁混合”判断）+ opencc/特征字法最终变体
-    simp_hits = sum(1 for c in text if c in _SIMP_CHARS)
-    trad_hits = sum(1 for c in text if c in _TRAD_CHARS)
-    zh_var = zh_variant(text, use_opencc=use_opencc) if han else ("zh", 0, 0)
+    # 繁体独有 / 简体独有 / 日语独有汉字 计数
+    trad_unique = sum(1 for c in text if c in TRAD_UNIQUE)
+    simp_unique = sum(1 for c in text if c in SIMP_UNIQUE)
+    jp_kanji = sum(1 for c in text if c in JP_UNIQUE_KANJI)
+
+    cjk = han + kana
+    # 占比：繁体按汉字数为分母；日语(假名+和製漢字)按 CJK(汉字+假名)为分母
+    trad_ratio = trad_unique / han if han else 0.0
+    simp_ratio = simp_unique / han if han else 0.0
+    ja_ratio = (kana + jp_kanji) / cjk if cjk else 0.0
 
     uk_hits = sum(1 for c in text.lower() if c in _UK_ONLY)
     ru_hits = sum(1 for c in text.lower() if c in _RU_ONLY)
@@ -172,9 +218,10 @@ def features(text, use_opencc=None):
     return {
         "text": text,
         "counts": counts, "total": total, "dominant": dominant,
-        "hira": hira, "kata": kata, "kana": kana,
+        "hira": hira, "kata": kata, "kana": kana, "cjk": cjk,
         "kana_genuine": bool(genuine_kana),
         "han": han, "cyr": cyr, "latin": latin, "hangul": hangul,
-        "simp_hits": simp_hits, "trad_hits": trad_hits, "zh_variant": zh_var,
+        "trad_unique": trad_unique, "simp_unique": simp_unique, "jp_kanji": jp_kanji,
+        "trad_ratio": trad_ratio, "simp_ratio": simp_ratio, "ja_ratio": ja_ratio,
         "uk_hits": uk_hits, "ru_hits": ru_hits,
     }

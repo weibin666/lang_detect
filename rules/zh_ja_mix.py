@@ -1,27 +1,25 @@
 # -*- coding: utf-8 -*-
-"""规则：日语 / 中日混合。
+"""规则：日语 / 中日混合（基于“日语独有字符占比”）。
 
-区分 zh/ja 的关键是「是否含假名」——中文不用假名。
-  - 含真假名             -> ja
-  - 汉字+假名混排        -> 日语常态，主语种判 ja（并标注中日混合倾向）
-  - 仅借用假名(の等)且占比极低 -> 不在这里判，交给中文规则
+日语独有字符 = 假名(平假名/片假名) + 和製漢字/新字体（不与简/繁中文共享）。
+其占 CJK(汉字+假名) 的比例 > JA_RATIO(默认0.1) -> 判日语。
+低于阈值（如中文里偶尔夹一个借用「の」）-> 不在这里判，交给后续规则/模型。
 """
+from config import JA_RATIO
+
 NAME = "zh_ja_mix"
 
 
 def detect(f):
-    kana, han = f["kana"], f["han"]
-    if kana == 0:
+    cjk = f["cjk"]
+    if cjk == 0 or cjk < max(f["cyr"], f["latin"], f["hangul"]):
         return None
-    kana_ratio = kana / (kana + han) if (kana + han) else 1.0
-    # 仅借用假名且占比很低 -> 视作噪声，留给中文规则
-    if not f["kana_genuine"] and kana_ratio < 0.15:
+    ratio = f["ja_ratio"]
+    if ratio <= JA_RATIO:
         return None
-
-    if han > 0:
-        note = "汉字+假名混排，主语种判日语（中日混合）"
-    else:
-        note = "含假名，判定日语"
-    conf = min(0.99, 0.6 + kana_ratio)
+    mixed = f["han"] > 0 and ratio < 0.6
+    note = "日语独有字符占比 %.0f%%（假名%d+和製汉字%d / CJK%d）%s" % (
+        ratio * 100, f["kana"], f["jp_kanji"], cjk, "，中日混排判主语种ja" if mixed else "")
+    conf = min(0.99, 0.6 + ratio)
     return {"lang": "ja", "confidence": round(conf, 4),
             "detect_type": "rule", "method": "rule:" + NAME, "note": note}

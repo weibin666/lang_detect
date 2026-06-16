@@ -32,12 +32,19 @@ detect_one(text)  —— 顺序执行，第一个命中即返回，并打 detect
 - 命中词按 `log(1+词频)` 累加得分；需命中数 `>= MIN_DICT_HITS` 且领先次高 `* DICT_MARGIN` 才采纳，否则交给规则层。
 
 ### 3. 规则 `rules/`（模块化，每个语种/混合一个脚本）
-- `zh_ja_mix`：含假名 → 日语（区分 zh/ja 的关键；汉字+假名混排判主语种为 ja）。借用假名「の」且占比极低时不判日语。
-- `zh_hant_mix`：同时出现简体+繁体特征字 → 简繁混合，按多者返回主语种。
-- `zh_hant` / `zh`：纯繁体 / 纯简体。简繁判定走 OpenCC（装了就用）或内置特征字法，开关 `use_opencc`。
+繁体与日语改用**“独有字符占比”**强规则（不依赖小词表，更稳）：
+- **独有字符集**（`script_utils.py`，OpenCC 全量生成，未装则退回内置特征字表）：
+  - `TRAD_UNIQUE` 繁体独有字（经 t2s 会变的字，港台繁体通用，不与简体共享）。
+  - `SIMP_UNIQUE` 简体独有字（经 s2t 会变的字，不与繁体共享）。
+  - `JP_UNIQUE` 日语独有字 = 假名 + 和製漢字/新字体（已剔除与简/繁共享的字）。
+- `zh_ja_mix`：日语独有字占 CJK 比 **> `JA_RATIO`(0.1)** → ja。借用假名「の」占比极低时不触发。
+- `zh_hant`：繁体独有字占汉字比 **> `TRAD_RATIO`(0.2)** → zh-Hant。
+- `zh_hant_mix`：同时出现简体独有字+繁体独有字 → 简繁混合，按多者返回主语种。
+- `zh`：出现简体独有字 → zh（汉字全是简繁共用字时不判，交给模型）。
 - `ko`：谚文。
 - `ru_uk_mix`：西里尔按特征字母（乌 `іїєґ` / 俄 `ыэъё`）区分；都没有则交给模型层。
 - `en`：拉丁 + 英文停用词占比。
+- **其他情况**（汉字全是共用字、占比未达阈值等）→ 规则层返回 None，交给兜底模型。
 
 ### 4. 模型兜底 `detector.py` + `cascade_models.py`
 - fasttext lid.176 覆盖 100+ 语种。
@@ -63,6 +70,7 @@ python3 app.py                     # 打开 http://127.0.0.1:5000
 | `LANGS33_PATH` | `langs33.txt` | 33 语种代码清单（占位示例，请替换） |
 | `LOW_CONF` / `HIGH_CONF` | `0.3` / `0.6` | 级联降级/高置信阈值 |
 | `CHUNK_SIZE` | `1200` | 超长分块阈值 |
+| `TRAD_RATIO` / `JA_RATIO` | `0.2` / `0.1` | 繁体/日语独有字符占比阈值 |
 | `MIN_DICT_HITS` / `DICT_MARGIN` | `2` / `1.3` | 词表采纳阈值 |
 | `RESOURCES_DIR` / `INTERVENE_DIR` / `DICT_DIR` | `resources/...` | 资源目录 |
 | `MYSQL_*` | 见 config | MySQL 术语库连接（`MYSQL_ENABLED=1` 启用） |
