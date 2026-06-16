@@ -57,6 +57,7 @@ detect_one(text)  —— 顺序执行，第一个命中即返回，并打 detect
 ### 4. 模型兜底 `detector.py` + `cascade_models.py`
 - fasttext lid.176 覆盖 100+ 语种。
 - **ru/uk 易混**：模型 top1/top2 同为 `{ru, uk}` → 混合，用特征字母（无则用模型主候选）返回主语种。
+- **拉丁字母串兜底为 en**：走到模型说明英文规则/词表都没命中；若文本是纯 ASCII 拉丁（无变音符）且模型置信度 `< LATIN_EN_FALLBACK_CONF`(0.65)，视为非真实语言的字母串（乱码/代号），默认返回 `en`（method `rule:latin_en_fallback`）。带变音符或模型高置信的真实语言(法德西等)不受影响。
 - **低资源级联**：lid.176 top1 置信度 `< LOW_CONF(0.3)` 且语种 ∈ `langs33.txt` 的 33 个 → 走自训 33 语种 fastText 模型（`models/custom33.ftz`）；仍 `< 0.3` 或模型缺失 → langid.py 兜底。
 
 ## 超长分块投票
@@ -80,6 +81,7 @@ python3 app.py                     # 打开 http://127.0.0.1:5000
 | `CHUNK_SIZE` | `1200` | 超长分块阈值 |
 | `TRAD_RATIO` / `JA_RATIO` | `0.2` / `0.1` | 繁体/日语独有字符占比阈值 |
 | `ZH_EN_MIX_RATIO` | `0.1` | 中英混合判中文的中文占比阈值 |
+| `LATIN_EN_FALLBACK_CONF` | `0.65` | 纯ASCII拉丁低于此置信度→默认en（调高更激进） |
 | `MIN_DICT_HITS` / `DICT_MARGIN` / `MIN_DICT_COVERAGE` | `2` / `1.3` / `0.15` | 词表采纳阈值 |
 | `RESOURCES_DIR` / `INTERVENE_DIR` / `DICT_DIR` | `resources/...` | 资源目录 |
 | `MYSQL_*` | 见 config | MySQL 术语库连接（`MYSQL_ENABLED=1` 启用） |

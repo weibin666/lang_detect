@@ -9,8 +9,8 @@ import os
 import urllib.request
 
 from cascade_models import cascade
-from config import LID176_PATH, LID176_URL
-from rules.script_utils import cyrillic_ru_uk, script_counts
+from config import LATIN_EN_FALLBACK_CONF, LID176_PATH, LID176_URL
+from rules.script_utils import cyrillic_ru_uk, script_counts, script_of
 
 # ---------------------------------------------------------------------------
 # fasttext 模型（lid.176）：懒加载 + 自动下载
@@ -41,6 +41,24 @@ def model_predict(text, k=5):
     one_line = (text or "").replace("\n", " ").strip()
     labels, probs = model.predict(one_line, k=k)
     return [(lab.replace("__label__", ""), float(p)) for lab, p in zip(labels, probs)]
+
+
+def _is_ascii_latin_dominant(text, counts):
+    """是否为‘纯 ASCII 拉丁字母为主、无变音符’的文本。
+
+    用于识别非真实语言的字母串（乱码/代号/无意义单词）：
+    真实的非英语拉丁语言(法德西等)往往带变音符(é ü ñ ç…)，且模型置信度高；
+    纯 ASCII 字母 + 模型低置信，更像是非语言的字母串。
+    """
+    latin = counts.get("latin", 0)
+    total = sum(counts.values())
+    if latin == 0 or latin < total * 0.9:      # 拉丁必须占绝对多数
+        return False
+    latin_chars = [c for c in text if script_of(ord(c)) == "latin"]
+    if not latin_chars:
+        return False
+    ascii_ratio = sum(1 for c in latin_chars if ord(c) < 128) / len(latin_chars)
+    return ascii_ratio >= 0.99                  # 几乎无变音符
 
 
 def model_fallback(text):
@@ -74,6 +92,15 @@ def model_fallback(text):
         return {"lang": casc["lang"], "confidence": casc["confidence"],
                 "detect_type": "model", "method": casc["method"],
                 "candidates": cands, "note": casc["note"], "scripts": counts}
+
+    # 纯ASCII拉丁字母串 + 模型低置信 -> 非真实语言(乱码/代号)，默认 en
+    # 走到这里说明前面 en 规则/词表都没命中，再低置信即视为非语言字母串
+    if top1[1] < LATIN_EN_FALLBACK_CONF and _is_ascii_latin_dominant(text, counts):
+        return {"lang": "en", "confidence": round(top1[1], 4),
+                "detect_type": "rule", "method": "rule:latin_en_fallback",
+                "candidates": cands, "scripts": counts,
+                "note": "纯ASCII拉丁字母串且模型低置信(%.2f<%.2f)，非真实语言，默认英文"
+                        % (top1[1], LATIN_EN_FALLBACK_CONF)}
 
     return {"lang": top1[0], "confidence": round(top1[1], 4),
             "detect_type": "model", "method": "model:fasttext",

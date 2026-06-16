@@ -42,6 +42,10 @@ JA_RATIO = float(os.environ.get("JA_RATIO", "0.1"))
 # 中英混合：中文字符占(中文+英文)比 > ZH_EN_MIX_RATIO -> zh，否则交给英文规则/模型
 ZH_EN_MIX_RATIO = float(os.environ.get("ZH_EN_MIX_RATIO", "0.1"))
 
+# 纯ASCII拉丁(无变音符)且模型置信度低于此值 -> 视为非真实语言的字母串(乱码/代号)，默认 en
+# 调高更激进(把更多低置信拉丁判 en)，调低更保守
+LATIN_EN_FALLBACK_CONF = float(os.environ.get("LATIN_EN_FALLBACK_CONF", "0.65"))
+
 # --- 资源目录 ---
 RESOURCES_DIR = os.environ.get("RESOURCES_DIR", os.path.join(BASE_DIR, "resources"))
 INTERVENE_DIR = os.environ.get("INTERVENE_DIR", os.path.join(RESOURCES_DIR, "intervene_data"))
