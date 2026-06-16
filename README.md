@@ -6,7 +6,7 @@
 
 ```
 detect(text)
- └─ 预处理：去重 collapse_repeats
+ └─ 预处理：去连续数字 strip_digits → 去重 collapse_repeats
  └─ 超长(>1200字符)? → 分块 → 每块 detect_one → 加权投票
     否则 → detect_one 一次
 

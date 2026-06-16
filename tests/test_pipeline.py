@@ -37,15 +37,17 @@ def test_detect_type_always_present():
             "intervene", "dict", "rule", "model"}
 
 
-# ---------------- 去重在 pipeline 内生效 ----------------
+# ---------------- 去重在 pipeline 内生效（关掉去数字以单独验证去重） ----------------
 def test_dedup_applied():
-    r = pipeline.detect("w30039560w30039560w30039560 你好世界这是测试内容")
+    r = pipeline.detect("w30039560w30039560w30039560 你好世界这是测试内容",
+                        strip_digits=False)
     assert r["cleaned_text"].count("w30039560") == 1
     assert r["lang"] == "zh"
 
 
 def test_dedup_can_be_disabled():
-    r = pipeline.detect("w30039560w30039560w30039560 你好", dedup=False)
+    r = pipeline.detect("w30039560w30039560w30039560 你好",
+                        dedup=False, strip_digits=False)
     assert r["cleaned_text"].count("w30039560") == 3
 
 

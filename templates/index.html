@@ -67,6 +67,7 @@
     <div class="row">
       <button onclick="run()">检测</button>
       <label class="opt"><input type="checkbox" id="dedup" checked> 去除连续重复</label>
+      <label class="opt"><input type="checkbox" id="stripdigits" checked> 去除连续数字</label>
       <label class="opt">重复≥ <input type="number" id="minrep" value="3" min="2"> 次才折叠</label>
       <label class="opt">简繁判定
         <select id="occ">
@@ -138,6 +139,7 @@ async function run(){
   const body = {
     text,
     dedup: document.getElementById('dedup').checked,
+    strip_digits: document.getElementById('stripdigits').checked,
     min_repeats: parseInt(document.getElementById('minrep').value) || 3,
     use_opencc: occ === 'auto' ? null : (occ === 'on'),
   };

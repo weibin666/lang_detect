@@ -27,11 +27,13 @@ def api_detect():
     data = request.get_json(force=True, silent=True) or {}
     text = data.get("text", "")
     dedup = bool(data.get("dedup", True))
+    strip_digits = bool(data.get("strip_digits", True))
     min_repeats = int(data.get("min_repeats", DEFAULT_MIN_REPEATS))
     # use_opencc: None=自动 / True=强制 OpenCC / False=强制特征字法
     use_opencc = data.get("use_opencc", None)
 
-    r = detect(text, dedup=dedup, min_repeats=min_repeats, use_opencc=use_opencc)
+    r = detect(text, dedup=dedup, min_repeats=min_repeats, use_opencc=use_opencc,
+               strip_digits=strip_digits)
     r["lang_name"] = name_of(r["lang"])
     if r.get("candidates"):
         r["candidates"] = [

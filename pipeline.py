@@ -16,7 +16,7 @@ import re
 import dict_vote
 import intervene
 import rules
-from dedup_repeats import collapse_repeats
+from dedup_repeats import collapse_repeats, strip_digits as _strip_digits
 from detector import model_fallback
 from config import CHUNK_SIZE, DEFAULT_MIN_REPEATS
 from rules.script_utils import script_counts
@@ -101,11 +101,14 @@ def _vote(chunk_results, chunks):
 # ---------------------------------------------------------------------------
 # 对外主入口
 # ---------------------------------------------------------------------------
-def detect(text, dedup=True, min_repeats=None, use_opencc=None):
+def detect(text, dedup=True, min_repeats=None, use_opencc=None, strip_digits=True):
     if min_repeats is None:
         min_repeats = DEFAULT_MIN_REPEATS
-    raw = text or ""
-    cleaned = collapse_repeats(raw, min_repeats=min_repeats) if dedup else raw
+    cleaned = text or ""
+    if strip_digits:                       # 先去掉连续数字（无语种信息）
+        cleaned = _strip_digits(cleaned)
+    if dedup:                              # 再折叠连续重复
+        cleaned = collapse_repeats(cleaned, min_repeats=min_repeats)
 
     if len(cleaned) <= CHUNK_SIZE:
         r = detect_one(cleaned, use_opencc=use_opencc)

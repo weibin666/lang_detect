@@ -21,7 +21,20 @@
 
 import re
 
-__all__ = ["collapse_repeats"]
+__all__ = ["collapse_repeats", "strip_digits"]
+
+# 连续数字（含全角/各语言数字）；语种检测里数字无语种信息，先去掉减少噪声
+_DIGITS_RE = re.compile(r"\d+", re.UNICODE)
+
+
+def strip_digits(text):
+    """去掉文本里连续的数字串（如 w30039560 -> w、电话 13800138000 -> 电话）。
+
+    用 \\d+（Unicode 感知）匹配数字串并删除；只去数字，保留其余字符。
+    """
+    if not text:
+        return text
+    return _DIGITS_RE.sub("", text)
 
 
 def collapse_repeats(text, min_repeats=3, max_unit_len=None, flags=re.DOTALL):
