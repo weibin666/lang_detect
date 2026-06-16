@@ -1,0 +1,14 @@
+# 模型二进制（lid.176 首次运行自动下载；custom33 由你提供）
+models/*.ftz
+models/*.bin
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# 系统/编辑器
+.DS_Store
+.idea/
+.vscode/

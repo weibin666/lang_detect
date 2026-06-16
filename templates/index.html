@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>语种检测 · Language Detection</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --line:#334155; --fg:#e2e8f0;
+    --muted:#94a3b8; --accent:#38bdf8; --accent2:#22c55e; --warn:#f59e0b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.6;padding:24px}
+  .wrap{max-width:880px;margin:0 auto}
+  h1{font-size:24px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:18px;margin-bottom:16px}
+  textarea{width:100%;min-height:130px;background:#0b1220;color:var(--fg);
+    border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;resize:vertical}
+  textarea:focus{outline:none;border-color:var(--accent)}
+  .row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:12px}
+  label.opt{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:14px}
+  input[type=number]{width:56px;background:#0b1220;color:var(--fg);border:1px solid var(--line);
+    border-radius:6px;padding:4px 6px}
+  button{background:var(--accent);color:#04293a;border:none;border-radius:10px;
+    padding:10px 22px;font-size:15px;font-weight:600;cursor:pointer}
+  button:hover{filter:brightness(1.08)}
+  .examples{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+  .examples button{background:transparent;color:var(--accent);border:1px solid var(--line);
+    font-weight:400;padding:5px 12px;font-size:13px}
+  .result{display:none}
+  .main-lang{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .code{font-size:34px;font-weight:700;color:var(--accent)}
+  .name{font-size:16px;color:var(--muted)}
+  .badge{display:inline-block;font-size:12px;padding:3px 9px;border-radius:20px;
+    background:#0b1220;border:1px solid var(--line);color:var(--muted)}
+  .badge.dt{color:#04293a;font-weight:600;border:none}
+  .badge.dt[data-dt=intervene]{background:#f87171}
+  .badge.dt[data-dt=dict]{background:#fbbf24}
+  .badge.dt[data-dt=rule]{background:#34d399}
+  .badge.dt[data-dt=model]{background:#60a5fa}
+  .bar{height:8px;background:#0b1220;border-radius:6px;overflow:hidden;margin:10px 0}
+  .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+  .note{color:var(--warn);font-size:14px;margin-top:6px}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:500}
+  .meta{font-size:13px;color:var(--muted)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .chip{background:#0b1220;border:1px solid var(--line);border-radius:6px;
+    padding:2px 8px;font-size:12px;color:var(--muted)}
+  pre{background:#0b1220;border:1px solid var(--line);border-radius:8px;padding:10px;
+    white-space:pre-wrap;word-break:break-all;font-size:13px;color:#cbd5e1;margin:6px 0 0}
+  h3{font-size:14px;color:var(--muted);margin:16px 0 4px;font-weight:500}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>语种检测 · Language Detection</h1>
+  <div class="sub">规则优先（zh / zh-Hant / ja / ko / en / ru / uk）+ fasttext 模型兜底（100+ 语种）。自动去除连续重复片段。</div>
+
+  <div class="card">
+    <textarea id="text" placeholder="粘贴文本…例如：w30039560w30039560w30039560 你好世界"></textarea>
+    <div class="row">
+      <button onclick="run()">检测</button>
+      <label class="opt"><input type="checkbox" id="dedup" checked> 去除连续重复</label>
+      <label class="opt">重复≥ <input type="number" id="minrep" value="3" min="2"> 次才折叠</label>
+      <label class="opt">简繁判定
+        <select id="occ">
+          <option value="auto">自动</option>
+          <option value="on">OpenCC</option>
+          <option value="off">特征字法</option>
+        </select>
+      </label>
+    </div>
+    <div class="examples" id="examples"></div>
+  </div>
+
+  <div class="card result" id="result">
+    <div class="main-lang">
+      <span class="code" id="r-code">--</span>
+      <span class="name" id="r-name"></span>
+      <span class="badge dt" id="r-dt"></span>
+      <span class="badge" id="r-method"></span>
+    </div>
+    <div class="bar"><i id="r-bar" style="width:0%"></i></div>
+    <div class="meta">置信度 <b id="r-conf">0</b> · 分块 <b id="r-chunks">1</b></div>
+    <div class="note" id="r-note"></div>
+
+    <div id="r-votes-wrap" style="display:none">
+      <h3>分块投票</h3>
+      <table><thead><tr><th>语种</th><th>名称</th><th>票重</th><th>占比</th></tr></thead>
+      <tbody id="r-votes"></tbody></table>
+    </div>
+
+    <div id="r-cands-wrap" style="display:none">
+      <h3>模型候选</h3>
+      <table><thead><tr><th>语种</th><th>名称</th><th>概率</th></tr></thead>
+      <tbody id="r-cands"></tbody></table>
+    </div>
+
+    <h3>脚本分布</h3>
+    <div class="chips" id="r-scripts"></div>
+
+    <h3>去重后文本</h3>
+    <pre id="r-clean"></pre>
+  </div>
+</div>
+
+<script>
+const EXAMPLES = [
+  ["强干预", "请用人民币支付，谢谢"],
+  ["词表", "hello world today thanks"],
+  ["重复+中文", "w30039560w30039560w30039560 你好世界，这是一个测试。"],
+  ["日语", "これはにほんごのテストです。日本語の文章。"],
+  ["繁体", "我們在臺灣使用繁體中文，這是一個測試。"],
+  ["简繁混合", "我们一起去臺灣旅遊看風景"],
+  ["乌克兰语", "Привіт, це український текст із літерами і, ї, є."],
+  ["俄语", "Привет, это русский текст без особых букв."],
+  ["英语", "wwwwwwwwwwwwww this is a test of English detection."],
+  ["法语(模型)", "Ceci est une phrase en français pour tester le modèle."],
+];
+const ex = document.getElementById('examples');
+EXAMPLES.forEach(([label, t]) => {
+  const b = document.createElement('button');
+  b.textContent = label;
+  b.onclick = () => { document.getElementById('text').value = t; run(); };
+  ex.appendChild(b);
+});
+
+async function run(){
+  const text = document.getElementById('text').value;
+  if(!text.trim()) return;
+  const occ = document.getElementById('occ').value;
+  const body = {
+    text,
+    dedup: document.getElementById('dedup').checked,
+    min_repeats: parseInt(document.getElementById('minrep').value) || 3,
+    use_opencc: occ === 'auto' ? null : (occ === 'on'),
+  };
+  const res = await fetch('/api/detect', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  const r = await res.json();
+  render(r);
+}
+
+const DT_LABEL = {intervene:'强干预', dict:'词表', rule:'规则', model:'模型'};
+function render(r){
+  document.getElementById('result').style.display='block';
+  document.getElementById('r-code').textContent = r.lang;
+  document.getElementById('r-name').textContent = r.lang_name || '';
+  const dt = document.getElementById('r-dt');
+  dt.textContent = DT_LABEL[r.detect_type] || r.detect_type || '';
+  dt.dataset.dt = r.detect_type || '';
+  document.getElementById('r-method').textContent = r.method;
+  const pct = Math.round((r.confidence||0)*100);
+  document.getElementById('r-bar').style.width = pct + '%';
+  document.getElementById('r-conf').textContent = (r.confidence||0).toFixed(3);
+  document.getElementById('r-chunks').textContent = r.chunks || 1;
+  document.getElementById('r-note').textContent = r.note || '';
+
+  const vw = document.getElementById('r-votes-wrap');
+  const vb = document.getElementById('r-votes');
+  vb.innerHTML='';
+  if(r.votes && r.votes.length){
+    vw.style.display='block';
+    r.votes.forEach(v=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${v.lang}</td><td>${v.name||''}</td><td>${v.weight}</td><td>${(v.share*100).toFixed(0)}%</td>`;
+      vb.appendChild(tr);
+    });
+  } else { vw.style.display='none'; }
+
+  const cw = document.getElementById('r-cands-wrap');
+  const cb = document.getElementById('r-cands');
+  cb.innerHTML='';
+  if(r.candidates && r.candidates.length){
+    cw.style.display='block';
+    r.candidates.forEach(c=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${c.lang}</td><td>${c.name}</td><td>${(c.prob*100).toFixed(1)}%</td>`;
+      cb.appendChild(tr);
+    });
+  } else { cw.style.display='none'; }
+
+  const sc = document.getElementById('r-scripts');
+  sc.innerHTML='';
+  Object.entries(r.scripts||{}).forEach(([k,v])=>{
+    const s=document.createElement('span');
+    s.className='chip'; s.textContent=`${k}: ${v}`;
+    sc.appendChild(s);
+  });
+
+  document.getElementById('r-clean').textContent = r.cleaned_text || '';
+}
+</script>
+</body>
+</html>

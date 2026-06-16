@@ -1,0 +1,7 @@
+flask>=2.0
+fasttext-wheel>=0.9.2
+numpy<2
+opencc>=1.1   # 可选：用于更准的简繁判定；不装会自动回退特征字法
+langid>=1.1   # 低资源级联的最后兜底
+pymysql>=1.0  # 可选：从 MySQL 术语库加载强干预数据（MYSQL_ENABLED=1 时）
+pytest>=7.0   # 仅测试用
