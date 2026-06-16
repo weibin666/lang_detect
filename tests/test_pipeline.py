@@ -37,6 +37,27 @@ def test_detect_type_always_present():
             "intervene", "dict", "rule", "model"}
 
 
+# ---------------- 纯数字+英文句号 -> 直接英文 ----------------
+@pytest.mark.parametrize("text", [
+    "123.456.789", "3.14", "1.2.3", "192.168.0.1", "2024.01.01", "12345", "1. 2. 3",
+])
+def test_numeric_dot_returns_en(text):
+    r = pipeline.detect(text)
+    assert r["lang"] == "en"
+    assert r["method"] == "rule:numeric_dot"
+    assert r["cleaned_text"] == text  # 未被去数字破坏
+
+
+@pytest.mark.parametrize("text", [
+    "hello 1.2",   # 含字母
+    "你好 3.14",    # 含中文
+    "...",          # 无数字
+])
+def test_numeric_dot_not_triggered(text):
+    r = pipeline.detect(text)
+    assert r["method"] != "rule:numeric_dot"
+
+
 # ---------------- 去重在 pipeline 内生效（关掉去数字以单独验证去重） ----------------
 def test_dedup_applied():
     r = pipeline.detect("w30039560w30039560w30039560 你好世界这是测试内容",

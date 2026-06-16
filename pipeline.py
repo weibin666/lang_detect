@@ -22,6 +22,15 @@ from config import CHUNK_SIZE, DEFAULT_MIN_REPEATS
 from rules.script_utils import script_counts
 
 
+# 纯数字 + 英文句号(.)（可含空白）：如版本号/IP/小数，直接判英文
+_NUMERIC_DOT_RE = re.compile(r"^[\s.]*\d[\d\s.]*$")
+
+
+def is_numeric_dot(text):
+    """文本是否为“纯数字+英文句号”（至少含一个数字，其余只有数字/`.`/空白）。"""
+    return bool(text) and _NUMERIC_DOT_RE.match(text) is not None
+
+
 # ---------------------------------------------------------------------------
 # 单块检测：四层串联
 # ---------------------------------------------------------------------------
@@ -104,7 +113,15 @@ def _vote(chunk_results, chunks):
 def detect(text, dedup=True, min_repeats=None, use_opencc=None, strip_digits=True):
     if min_repeats is None:
         min_repeats = DEFAULT_MIN_REPEATS
-    cleaned = text or ""
+    raw = text or ""
+
+    # 特例：纯数字+英文句号（版本号/IP/小数等）-> 直接英文（在去数字之前判断）
+    if is_numeric_dot(raw):
+        return {"lang": "en", "confidence": 0.9, "detect_type": "rule",
+                "method": "rule:numeric_dot", "note": "纯数字+英文句号，直接判英文",
+                "cleaned_text": raw, "chunks": 1, "scripts": {}}
+
+    cleaned = raw
     if strip_digits:                       # 先去掉连续数字（无语种信息）
         cleaned = _strip_digits(cleaned)
     if dedup:                              # 再折叠连续重复
