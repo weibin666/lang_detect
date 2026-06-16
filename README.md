@@ -42,6 +42,7 @@ detect_one(text)  —— 顺序执行，第一个命中即返回，并打 detect
 - `zh_hant`：繁体独有字占汉字比 **> `TRAD_RATIO`(0.2)** → zh-Hant。
 - `zh_hant_mix`：同时出现简体独有字+繁体独有字 → 简繁混合，按多者返回主语种。
 - `zh`：出现简体独有字 → zh（汉字全是简繁共用字时不判，交给模型）。
+- `zh_en_mix`：中英混合时，中文占比 `汉字/(汉字+英文)` **> `ZH_EN_MIX_RATIO`(0.1)** → zh（繁体特征明显则 zh-Hant）；否则交给后续英文规则/模型。
 - `ko`：谚文。
 - `ru_uk_mix`：西里尔按特征字母（乌 `іїєґ` / 俄 `ыэъё`）区分；都没有则交给模型层。
 - `en`：拉丁 + 英文停用词占比。
@@ -72,6 +73,7 @@ python3 app.py                     # 打开 http://127.0.0.1:5000
 | `LOW_CONF` / `HIGH_CONF` | `0.3` / `0.6` | 级联降级/高置信阈值 |
 | `CHUNK_SIZE` | `1200` | 超长分块阈值 |
 | `TRAD_RATIO` / `JA_RATIO` | `0.2` / `0.1` | 繁体/日语独有字符占比阈值 |
+| `ZH_EN_MIX_RATIO` | `0.1` | 中英混合判中文的中文占比阈值 |
 | `MIN_DICT_HITS` / `DICT_MARGIN` | `2` / `1.3` | 词表采纳阈值 |
 | `RESOURCES_DIR` / `INTERVENE_DIR` / `DICT_DIR` | `resources/...` | 资源目录 |
 | `MYSQL_*` | 见 config | MySQL 术语库连接（`MYSQL_ENABLED=1` 启用） |

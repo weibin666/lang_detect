@@ -4,7 +4,7 @@
 顺序很重要：先处理含假名(日)、再简繁混合、再单一简/繁、谚文、俄乌、英文。
 每个规则脚本是独立模块，返回 {lang, confidence, detect_type:'rule', method, note} 或 None。
 """
-from rules import en, ko, ru_uk_mix, zh, zh_hant, zh_hant_mix, zh_ja_mix
+from rules import en, ko, ru_uk_mix, zh, zh_en_mix, zh_hant, zh_hant_mix, zh_ja_mix
 from rules.script_utils import features
 
 # 调度顺序
@@ -13,6 +13,7 @@ _PIPELINE = [
     zh_hant_mix,  # 简繁混合
     zh_hant,      # 纯繁体
     zh,           # 纯简体
+    zh_en_mix,    # 中英混合：中文占比 > 阈值 -> 中文，否则交给 en/模型
     ko,           # 谚文 -> 韩语
     ru_uk_mix,    # 西里尔 -> 俄/乌（含混合）
     en,           # 拉丁 + 英文停用词 -> 英语
