@@ -19,7 +19,8 @@ import rules
 from dedup_repeats import collapse_repeats, strip_digits as _strip_digits
 from detector import model_fallback
 from config import CHUNK_SIZE, DEFAULT_MIN_REPEATS
-from normalize import sanitize as _sanitize
+from normalize import sanitize as _sanitize, is_url_email_only
+from config import URL_EMAIL_LANG
 from rules.script_utils import script_counts
 
 
@@ -121,8 +122,21 @@ def detect(text, dedup=True, min_repeats=None, use_opencc=None, strip_digits=Tru
     if min_repeats is None:
         min_repeats = DEFAULT_MIN_REPEATS
 
+    original = text or ""
+    # 整段就是 URL/邮箱（无自然语言内容）-> 直接给定语种（默认 en，可配 und）
+    if is_url_email_only(original):
+        return {"lang": URL_EMAIL_LANG, "confidence": 0.9, "detect_type": "rule",
+                "method": "rule:url_email", "note": "整段为 URL/邮箱，无自然语言内容",
+                "cleaned_text": original.strip(), "chunks": 1, "scripts": {}}
+
     # 输入治理：截断超长 + 去噪(URL/email/@/emoji/markdown) + NFKC归一化 + 折叠空白
-    raw = _sanitize(text) if sanitize else (text or "")
+    raw = _sanitize(original) if sanitize else original
+
+    # 治理后无任何字母/数字（纯 emoji / 纯标点 / 去噪后无内容）-> 无可识别语言
+    if not re.search(r"[^\W_]", raw, re.UNICODE):
+        return {"lang": "und", "confidence": 0.0, "detect_type": "rule",
+                "method": "rule:empty", "note": "无可识别的语言内容",
+                "cleaned_text": raw.strip(), "chunks": 1, "scripts": {}}
 
     # 特例：纯数字+英文句号（版本号/IP/小数等）-> 直接英文（在去数字之前判断）
     if is_numeric_dot(raw):

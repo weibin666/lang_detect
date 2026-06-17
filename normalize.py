@@ -56,6 +56,25 @@ def strip_noise(text):
     return text
 
 
+_NON_WORD_RE = re.compile(r"[\s\W_]+", re.UNICODE)
+
+
+def is_url_email_only(text):
+    """整段是否仅由 URL / 邮箱（加空白/标点）构成、没有其它自然语言内容。
+
+    例：'https://huawei.com'、'a.b@x.com'、'a@b.com https://c.com' -> True
+        '看这个 https://x.com'（含中文）-> False
+    """
+    if not text or not text.strip():
+        return False
+    if not (_URL_RE.search(text) or _EMAIL_RE.search(text)):
+        return False
+    rest = _URL_RE.sub(" ", text)
+    rest = _EMAIL_RE.sub(" ", rest)
+    rest = _NON_WORD_RE.sub("", rest)   # 去掉空白/标点，仅看是否还剩字母/数字/汉字等
+    return rest == ""
+
+
 def normalize_text(text):
     """Unicode NFKC 归一化（含全/半角统一）。"""
     return unicodedata.normalize("NFKC", text)

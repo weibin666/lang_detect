@@ -57,6 +57,9 @@ RESOURCE_RELOAD_TTL = int(os.environ.get("RESOURCE_RELOAD_TTL", "300"))
 
 # --- 输入治理 ---
 MAX_INPUT_LEN = int(os.environ.get("MAX_INPUT_LEN", "100000"))  # 超过则截断，防滥用/DoS
+# 整段就是 URL/邮箱（无自然语言内容）时返回的语种。默认 en；
+# 翻译页面若想表达“无需翻译/无法判定”，可设为 und。
+URL_EMAIL_LANG = os.environ.get("URL_EMAIL_LANG", "en")
 
 # --- 词表层阈值 ---
 # 命中条目数 >= MIN_DICT_HITS 且 主语种得分 >= 次高 * DICT_MARGIN 才采纳词表结果

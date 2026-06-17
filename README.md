@@ -6,7 +6,9 @@
 
 ```
 detect(text)
+ └─ 整段为 URL/邮箱 → rule:url_email（默认 en，可配 URL_EMAIL_LANG=und）
  └─ 输入治理 sanitize：截断超长 + 去噪(URL/email/@/emoji/markdown) + NFKC归一化 + 折叠空白
+ └─ 治理后无字母/数字(纯emoji/纯标点) → und (rule:empty)
  └─ 特例：纯数字+英文句号(版本号/IP/小数等) → 直接 en (rule:numeric_dot)
  └─ 预处理：去连续数字 strip_digits → 去重 collapse_repeats
  └─ 超长(>1200字符)? → 分块 → 每块 detect_one → 加权投票
@@ -85,6 +87,7 @@ python3 app.py                     # 打开 http://127.0.0.1:5000
 |------|------|------|
 | `LID176_PATH` / `LID176_URL` | `models/lid.176.ftz` | 开源兜底模型路径/下载地址 |
 | `MAX_INPUT_LEN` | `100000` | 输入截断上限 |
+| `URL_EMAIL_LANG` | `en` | 整段为 URL/邮箱时返回的语种（可设 `und`） |
 | `RESOURCE_RELOAD_TTL` | `300` | 词库/词表自动重载间隔秒(0=不自动) |
 | `CUSTOM33_MODEL_PATH` | `models/custom33.ftz` | 自训 33 语种模型 |
 | `LANGS33_PATH` | `langs33.txt` | 33 语种代码清单（占位示例，请替换） |
