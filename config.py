@@ -51,6 +51,13 @@ RESOURCES_DIR = os.environ.get("RESOURCES_DIR", os.path.join(BASE_DIR, "resource
 INTERVENE_DIR = os.environ.get("INTERVENE_DIR", os.path.join(RESOURCES_DIR, "intervene_data"))
 DICT_DIR = os.environ.get("DICT_DIR", os.path.join(RESOURCES_DIR, "dict"))
 
+# 词库/词表热更新：每隔 RESOURCE_RELOAD_TTL 秒检查并重载一次（0=只加载一次不自动重载）。
+# 也可调 reload_all() 或 POST /api/reload 立即重载。
+RESOURCE_RELOAD_TTL = int(os.environ.get("RESOURCE_RELOAD_TTL", "300"))
+
+# --- 输入治理 ---
+MAX_INPUT_LEN = int(os.environ.get("MAX_INPUT_LEN", "100000"))  # 超过则截断，防滥用/DoS
+
 # --- 词表层阈值 ---
 # 命中条目数 >= MIN_DICT_HITS 且 主语种得分 >= 次高 * DICT_MARGIN 才采纳词表结果
 MIN_DICT_HITS = int(os.environ.get("MIN_DICT_HITS", "2"))

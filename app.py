@@ -11,7 +11,7 @@ import os
 from flask import Flask, jsonify, render_template, request
 
 from config import DEFAULT_MIN_REPEATS
-from pipeline import detect
+from pipeline import detect, reload_all
 from lang_names import name_of
 
 app = Flask(__name__)
@@ -28,12 +28,13 @@ def api_detect():
     text = data.get("text", "")
     dedup = bool(data.get("dedup", True))
     strip_digits = bool(data.get("strip_digits", True))
+    sanitize = bool(data.get("sanitize", True))
     min_repeats = int(data.get("min_repeats", DEFAULT_MIN_REPEATS))
     # use_opencc: None=自动 / True=强制 OpenCC / False=强制特征字法
     use_opencc = data.get("use_opencc", None)
 
     r = detect(text, dedup=dedup, min_repeats=min_repeats, use_opencc=use_opencc,
-               strip_digits=strip_digits)
+               strip_digits=strip_digits, sanitize=sanitize)
     r["lang_name"] = name_of(r["lang"])
     if r.get("candidates"):
         r["candidates"] = [
@@ -44,6 +45,12 @@ def api_detect():
         for v in r["votes"]:
             v["name"] = name_of(v["lang"])
     return jsonify(r)
+
+
+@app.route("/api/reload", methods=["POST"])
+def api_reload():
+    """热重载术语库 + 词表（无需重启服务）。"""
+    return jsonify({"ok": True, "reloaded": reload_all()})
 
 
 if __name__ == "__main__":

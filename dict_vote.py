@@ -17,9 +17,10 @@ import glob
 import math
 import os
 import re
+import time
 
 from config import (DICT_DIR, DICT_MARGIN, HIGH_CONF, MIN_DICT_COVERAGE,
-                    MIN_DICT_HITS)
+                    MIN_DICT_HITS, RESOURCE_RELOAD_TTL)
 from rules.script_utils import script_of
 
 # 非空格语言（不用空格分词，按子串匹配）
@@ -28,6 +29,7 @@ NON_SPACE_LANGS = {"zh", "zh-Hant", "yue", "ja", "th", "lo", "km", "my", "bo"}
 _NON_SPACE_SCRIPTS = {"han", "hiragana", "katakana", "thai"}
 
 _DICTS = None
+_DICTS_LOADED_AT = 0.0
 _WORD_RE = re.compile(r"[^\W\d_]+", re.UNICODE)
 
 
@@ -48,9 +50,11 @@ def _parse_row(row):
 
 
 def load_dicts(force=False):
-    """{lang: {entry_lower: freq}}。"""
-    global _DICTS
-    if _DICTS is not None and not force:
+    """{lang: {entry_lower: freq}}。按 TTL 自动热更新；force=True 立即重载。"""
+    global _DICTS, _DICTS_LOADED_AT
+    now = time.time()
+    stale = (RESOURCE_RELOAD_TTL > 0 and now - _DICTS_LOADED_AT >= RESOURCE_RELOAD_TTL)
+    if _DICTS is not None and not force and not stale:
         return _DICTS
     dicts = {}
     if os.path.isdir(DICT_DIR):
@@ -67,7 +71,14 @@ def load_dicts(force=False):
             if entries:
                 dicts[lang] = entries
     _DICTS = dicts
+    _DICTS_LOADED_AT = now
     return _DICTS
+
+
+def reload_dicts():
+    """立即重载词表，返回各语种词条数。"""
+    dicts = load_dicts(force=True)
+    return {lang: len(d) for lang, d in dicts.items()}
 
 
 def _w(freq):

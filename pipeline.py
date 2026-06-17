@@ -19,7 +19,13 @@ import rules
 from dedup_repeats import collapse_repeats, strip_digits as _strip_digits
 from detector import model_fallback
 from config import CHUNK_SIZE, DEFAULT_MIN_REPEATS
+from normalize import sanitize as _sanitize
 from rules.script_utils import script_counts
+
+
+def reload_all():
+    """热重载术语库 + 词表，返回各自条目数。供管理接口/定时任务调用。"""
+    return {"intervene": intervene.reload_terms(), "dict": dict_vote.reload_dicts()}
 
 
 # 纯数字 + 英文句号(.)（可含空白）：如版本号/IP/小数，直接判英文
@@ -110,10 +116,13 @@ def _vote(chunk_results, chunks):
 # ---------------------------------------------------------------------------
 # 对外主入口
 # ---------------------------------------------------------------------------
-def detect(text, dedup=True, min_repeats=None, use_opencc=None, strip_digits=True):
+def detect(text, dedup=True, min_repeats=None, use_opencc=None, strip_digits=True,
+           sanitize=True):
     if min_repeats is None:
         min_repeats = DEFAULT_MIN_REPEATS
-    raw = text or ""
+
+    # 输入治理：截断超长 + 去噪(URL/email/@/emoji/markdown) + NFKC归一化 + 折叠空白
+    raw = _sanitize(text) if sanitize else (text or "")
 
     # 特例：纯数字+英文句号（版本号/IP/小数等）-> 直接英文（在去数字之前判断）
     if is_numeric_dot(raw):

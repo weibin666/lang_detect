@@ -6,6 +6,7 @@
 
 ```
 detect(text)
+ └─ 输入治理 sanitize：截断超长 + 去噪(URL/email/@/emoji/markdown) + NFKC归一化 + 折叠空白
  └─ 特例：纯数字+英文句号(版本号/IP/小数等) → 直接 en (rule:numeric_dot)
  └─ 预处理：去连续数字 strip_digits → 去重 collapse_repeats
  └─ 超长(>1200字符)? → 分块 → 每块 detect_one → 加权投票
@@ -70,11 +71,17 @@ python3 app.py                     # 打开 http://127.0.0.1:5000
 ```
 首次检测会自动下载 fasttext 模型（约 1MB，存到 `models/lid.176.ftz`）。
 
+## 输入治理 + 词库热更新
+- **输入治理** `normalize.py`：`detect` 前 `sanitize`——截断超长(`MAX_INPUT_LEN`)、去 URL/email/@提及/emoji/markdown 标记（`[text](url)` 保留文字）、NFKC 归一化(全/半角统一)、折叠空白。可用 `sanitize=False` 关闭。
+- **词库热更新**：术语库/词表每 `RESOURCE_RELOAD_TTL`(默认300s) 自动重载；也可 `POST /api/reload` 或调 `pipeline.reload_all()` 立即重载，无需重启。
+
 ## 配置（`config.py`，均可用同名环境变量覆盖）
 
 | 配置 | 默认 | 说明 |
 |------|------|------|
 | `LID176_PATH` / `LID176_URL` | `models/lid.176.ftz` | 开源兜底模型路径/下载地址 |
+| `MAX_INPUT_LEN` | `100000` | 输入截断上限 |
+| `RESOURCE_RELOAD_TTL` | `300` | 词库/词表自动重载间隔秒(0=不自动) |
 | `CUSTOM33_MODEL_PATH` | `models/custom33.ftz` | 自训 33 语种模型 |
 | `LANGS33_PATH` | `langs33.txt` | 33 语种代码清单（占位示例，请替换） |
 | `LOW_CONF` / `HIGH_CONF` | `0.3` / `0.6` | 级联降级/高置信阈值 |

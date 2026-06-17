@@ -17,14 +17,18 @@
 - **现状**：`_MODEL`(detector)、`_TERMS`(intervene)、`_DICTS`(dict_vote)、`_OPENCC`、`TRAD_UNIQUE` 均为模块级懒加载，多 worker/多线程并发首次访问有竞态。
 - **改法**：启动时显式预加载，或加 `threading.Lock`。
 
-### 3. 输入治理
-- 最大长度限制、超时、空/超大输入保护。
-- 先做 **Unicode 归一化(NFKC) + 全半角统一**。
-- 剥离 URL / email / @ / # / emoji / markdown（翻译页面常见，会污染检测）。
+### 3. 输入治理 ✅ 已完成
+- [x] 最大长度截断（`MAX_INPUT_LEN`），空/超大输入保护。
+- [x] **Unicode 归一化(NFKC) + 全半角统一**（[normalize.py](normalize.py) `normalize_text`）。
+- [x] 剥离 URL / email / @提及 / emoji / markdown（`[text](url)` 保留文字）。
+- [x] 折叠多余空白；`detect(sanitize=True)` 默认开启，页面有开关。
+- 待办：请求级超时（属服务层，随 P0#1 一起做）。
 
-### 4. 词库热更新 + 规模化
-- **现状**：[intervene.py](intervene.py) 的 MySQL 术语库**仅进程启动时 load 一次、永不刷新**，且全量进内存。
-- **改法**：定时/按信号刷新（TTL 或管理接口触发 `load_terms(force=True)`）；大规模时上 Redis 缓存或避免全量进内存。
+### 4. 词库热更新 + 规模化 ✅ 部分完成
+- [x] 术语库/词表按 `RESOURCE_RELOAD_TTL`(默认300s) 自动重载；`load_terms/load_dicts(force=True)`。
+- [x] 立即重载：`pipeline.reload_all()` + `POST /api/reload`，无需重启。
+- 待办（规模化）：TTL 边界重载是同步的，会有单次延迟尖峰 → 改后台线程刷新；
+  大规模(百万级术语)避免全量进内存 → Redis 缓存 / 增量加载。
 
 ---
 
@@ -101,8 +105,8 @@
 |----|--------|------|--------|------|
 | 1. 生产 WSGI/ASGI 服务器 | P0 | TODO | | |
 | 2. 缓存线程安全 | P0 | TODO | | |
-| 3. 输入治理/归一化 | P0 | TODO | | |
-| 4. 词库热更新/规模化 | P0 | TODO | | |
+| 3. 输入治理/归一化 | P0 | ✅ 完成 | | normalize.py，超时待服务层 |
+| 4. 词库热更新/规模化 | P0 | 🔶 部分 | | TTL+手动重载已做；后台刷新/Redis 待办 |
 | 5. Aho-Corasick 匹配 | P1 | TODO | | |
 | 6. 结果缓存 | P1 | TODO | | |
 | 7. 去重计算 + batch | P1 | TODO | | |

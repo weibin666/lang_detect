@@ -13,11 +13,13 @@
 
 import glob
 import os
+import time
 
-from config import INTERVENE_DIR, MYSQL
+from config import INTERVENE_DIR, MYSQL, RESOURCE_RELOAD_TTL
 
-# {lang: set(terms)}；懒加载并缓存
+# {lang: set(terms)}；懒加载并缓存，按 TTL 自动重载（词库热更新）
 _TERMS = None
+_TERMS_LOADED_AT = 0.0
 
 
 def _load_local():
@@ -64,14 +66,27 @@ def _load_mysql():
 
 
 def load_terms(force=False):
-    """加载并缓存术语库（本地 + MySQL 合并）。"""
-    global _TERMS
-    if _TERMS is None or force:
+    """加载并缓存术语库（本地 + MySQL 合并）。
+
+    热更新：首次加载后，每隔 RESOURCE_RELOAD_TTL 秒自动重载一次；
+    force=True 立即重载（供 reload 接口/管理调用）。
+    """
+    global _TERMS, _TERMS_LOADED_AT
+    now = time.time()
+    stale = (RESOURCE_RELOAD_TTL > 0 and now - _TERMS_LOADED_AT >= RESOURCE_RELOAD_TTL)
+    if _TERMS is None or force or stale:
         merged = _load_local()
         for lang, terms in _load_mysql().items():
             merged.setdefault(lang, set()).update(terms)
         _TERMS = merged
+        _TERMS_LOADED_AT = now
     return _TERMS
+
+
+def reload_terms():
+    """立即重载术语库，返回各语种条目数。"""
+    terms = load_terms(force=True)
+    return {lang: len(ts) for lang, ts in terms.items()}
 
 
 def detect(text):

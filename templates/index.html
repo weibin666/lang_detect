@@ -66,6 +66,7 @@
     <textarea id="text" placeholder="粘贴文本…例如：w30039560w30039560w30039560 你好世界"></textarea>
     <div class="row">
       <button onclick="run()">检测</button>
+      <label class="opt"><input type="checkbox" id="sanitize" checked> 输入治理</label>
       <label class="opt"><input type="checkbox" id="dedup" checked> 去除连续重复</label>
       <label class="opt"><input type="checkbox" id="stripdigits" checked> 去除连续数字</label>
       <label class="opt">重复≥ <input type="number" id="minrep" value="3" min="2"> 次才折叠</label>
@@ -138,6 +139,7 @@ async function run(){
   const occ = document.getElementById('occ').value;
   const body = {
     text,
+    sanitize: document.getElementById('sanitize').checked,
     dedup: document.getElementById('dedup').checked,
     strip_digits: document.getElementById('stripdigits').checked,
     min_repeats: parseInt(document.getElementById('minrep').value) || 3,
