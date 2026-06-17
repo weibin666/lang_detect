@@ -20,7 +20,7 @@ needs_model = pytest.mark.skipif(not os.path.exists(LID176_PATH),
 def test_gibberish_latin_returns_en(text):
     r = pipeline.detect(text)
     assert r["lang"] == "en"
-    assert r["method"] == "rule:latin_en_fallback"
+    assert r["method"] == "rule:reconcile_latin_en"
 
 
 @needs_model
@@ -33,4 +33,4 @@ def test_gibberish_latin_returns_en(text):
 def test_real_languages_not_overridden(text, lang):
     r = pipeline.detect(text)
     assert r["lang"] == lang
-    assert r["method"] != "rule:latin_en_fallback"
+    assert not r["method"].startswith("rule:reconcile")

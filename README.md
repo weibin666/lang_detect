@@ -58,7 +58,11 @@ detect_one(text)  —— 顺序执行，第一个命中即返回，并打 detect
 ### 4. 模型兜底 `detector.py` + `cascade_models.py`
 - fasttext lid.176 覆盖 100+ 语种。
 - **ru/uk 易混**：模型 top1/top2 同为 `{ru, uk}` → 混合，用特征字母（无则用模型主候选）返回主语种。
-- **拉丁字母串兜底为 en**：走到模型说明英文规则/词表都没命中；若文本是纯 ASCII 拉丁（无变音符）且模型置信度 `< LATIN_EN_FALLBACK_CONF`(0.65)，视为非真实语言的字母串（乱码/代号），默认返回 `en`（method `rule:latin_en_fallback`）。带变音符或模型高置信的真实语言(法德西等)不受影响。
+- **规则复核 `reconcile.py`**（针对短文本/乱码/拉丁+数字等模型易错 badcase）：拿到模型结果后用**脚本/字符硬信号**再判一次并按需覆盖：
+  - **脚本族不匹配（任意置信度）**：拉丁文本被判成汉字/西里尔语言（哪怕 0.99）等 → 按文本脚本族默认语言纠正（拉丁→en、cjk→zh、西里尔→ru/uk…）。
+  - **纯汉字无假名 → 中文（任意置信度）**：纠正模型把中文短词误判成 `ja`（日语必有假名）。
+  - **低置信(`< RECONCILE_CONF` 0.65)同族复核**：纯 ASCII 拉丁(无变音符)→ en（乱码/代号）；西里尔有特征字母 → ru/uk。
+  - 带变音符的真实语言、模型高置信的同族结果不动（method `rule:reconcile_*`）。
 - **低资源级联**：lid.176 top1 置信度 `< LOW_CONF(0.3)` 且语种 ∈ `langs33.txt` 的 33 个 → 走自训 33 语种 fastText 模型（`models/custom33.ftz`）；仍 `< 0.3` 或模型缺失 → langid.py 兜底。
 
 ## 超长分块投票
@@ -88,7 +92,7 @@ python3 app.py                     # 打开 http://127.0.0.1:5000
 | `CHUNK_SIZE` | `1200` | 超长分块阈值 |
 | `TRAD_RATIO` / `JA_RATIO` | `0.2` / `0.1` | 繁体/日语独有字符占比阈值 |
 | `ZH_EN_MIX_RATIO` | `0.1` | 中英混合判中文的中文占比阈值 |
-| `LATIN_EN_FALLBACK_CONF` | `0.65` | 纯ASCII拉丁低于此置信度→默认en（调高更激进） |
+| `RECONCILE_CONF` | `0.65` | 模型低于此置信度时触发规则复核（脚本族不匹配/纯汉字无假名不受限） |
 | `MIN_DICT_HITS` / `DICT_MARGIN` / `MIN_DICT_COVERAGE` | `2` / `1.3` / `0.15` | 词表采纳阈值 |
 | `RESOURCES_DIR` / `INTERVENE_DIR` / `DICT_DIR` | `resources/...` | 资源目录 |
 | `MYSQL_*` | 见 config | MySQL 术语库连接（`MYSQL_ENABLED=1` 启用） |
@@ -102,7 +106,8 @@ python3 app.py                     # 打开 http://127.0.0.1:5000
 - `dedup_repeats.py` — 连续重复折叠。
 - `intervene.py` — 强干预层。 `dict_vote.py` — 词表层。
 - `rules/` — 规则层：`script_utils.py`(共享) + 各语种/混合脚本 + `__init__.py`(调度)。
-- `detector.py` — 模型层 `model_fallback()`。 `cascade_models.py` — 低资源级联。
+- `detector.py` — 模型层 `model_fallback()`。 `cascade_models.py` — 低资源级联。 `reconcile.py` — 模型结果规则复核。
+- `normalize.py` — 输入治理（去噪/归一化/截断）。
 - `langs33.txt` — 33 语种清单。 `lang_names.py` — 代码→名称。
 - `resources/intervene_data/*.txt`、`resources/dict/*.csv` — 干预/词表数据。
 - `app.py` + `templates/index.html` — Web 服务与页面。
