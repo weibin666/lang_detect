@@ -11,11 +11,15 @@
 只清洗、不判定语种。返回清洗后的文本。
 """
 
+import html as _html
 import re
 import unicodedata
 
 from config import MAX_INPUT_LEN
 
+_HTML_TAG_RE = re.compile(r"<[^>]+>")            # <p> <br/> <div ...> 等标签
+_HTML_SCRIPT_STYLE_RE = re.compile(
+    r"<(script|style)[^>]*>.*?</\1>", re.IGNORECASE | re.DOTALL)  # 整段脚本/样式
 _URL_RE = re.compile(r"(?:https?://|www\.)\S+", re.IGNORECASE)
 _EMAIL_RE = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b")
 _MENTION_RE = re.compile(r"@\w+")
@@ -40,12 +44,21 @@ _EMOJI_RE = re.compile(
 )
 
 
-def strip_noise(text):
-    """去掉 URL / email / @提及 / emoji / markdown 标记。
+def strip_html(text):
+    """去 HTML：先删 script/style 整段，再删标签，最后反转义 HTML 实体。"""
+    text = _HTML_SCRIPT_STYLE_RE.sub(" ", text)
+    text = _HTML_TAG_RE.sub(" ", text)
+    text = _html.unescape(text)            # &nbsp; &amp; &#1234; 等
+    return text
 
-    顺序要点：先处理 markdown 图片/链接（保留链接文字），再删 URL，
+
+def strip_noise(text):
+    """去掉 HTML 标签 / URL / email / @提及 / emoji / markdown 标记。
+
+    顺序要点：先去 HTML，再处理 markdown 图片/链接（保留链接文字），再删 URL，
     否则 URL 正则会把链接里的地址先吃掉、破坏 [text](url) 结构。
     """
+    text = strip_html(text)                # 先去 HTML 标签/实体
     text = _MD_IMAGE_RE.sub(" ", text)     # ![alt](url) -> 删
     text = _MD_LINK_RE.sub(r"\1", text)    # [text](url) -> text（须在删URL前）
     text = _URL_RE.sub(" ", text)

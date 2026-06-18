@@ -46,6 +46,10 @@ ZH_EN_MIX_RATIO = float(os.environ.get("ZH_EN_MIX_RATIO", "0.1"))
 # （纯汉字无假名→中文 这一强先验不受此阈值限制，任何置信度都会纠正模型的 ja/ko 误判。）
 RECONCILE_CONF = float(os.environ.get("RECONCILE_CONF", "0.65"))
 
+# 模型路径置信度 >= 此值才算“可靠”（reliable=True）。规则/词表/干预默认可靠；
+# 非自然语言默认(url/数字/乱码兜底en)与 und 一律不可靠。
+RELIABLE_CONF = float(os.environ.get("RELIABLE_CONF", "0.5"))
+
 # --- 资源目录 ---
 RESOURCES_DIR = os.environ.get("RESOURCES_DIR", os.path.join(BASE_DIR, "resources"))
 INTERVENE_DIR = os.environ.get("INTERVENE_DIR", os.path.join(RESOURCES_DIR, "intervene_data"))

@@ -12,9 +12,16 @@ from flask import Flask, jsonify, render_template, request
 
 from config import DEFAULT_MIN_REPEATS
 from pipeline import detect, reload_all
+from detector import warmup
 from lang_names import name_of
 
 app = Flask(__name__)
+
+# 启动预热：导入时加载模型，避免首个请求冷启动延迟（gunicorn 各 worker 亦生效）。
+try:
+    warmup()
+except Exception as _e:                      # 离线/模型缺失不阻塞启动
+    print("[warmup] 跳过模型预热：%s" % _e)
 
 
 @app.route("/")
@@ -44,6 +51,9 @@ def api_detect():
     if r.get("votes"):
         for v in r["votes"]:
             v["name"] = name_of(v["lang"])
+    if r.get("languages"):
+        for lg in r["languages"]:
+            lg["name"] = name_of(lg["lang"])
     return jsonify(r)
 
 

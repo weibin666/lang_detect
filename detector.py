@@ -19,21 +19,44 @@ from rules.script_utils import cyrillic_ru_uk, script_counts
 _MODEL = None
 
 
-def _ensure_model_file():
+def _ensure_model_file(allow_download=True):
     if not os.path.exists(LID176_PATH):
+        if not allow_download:
+            raise FileNotFoundError(
+                "lid.176 模型缺失：%s。生产应把模型打进镜像/制品，"
+                "或先运行 download_model()。" % LID176_PATH)
         os.makedirs(os.path.dirname(LID176_PATH), exist_ok=True)
         urllib.request.urlretrieve(LID176_URL, LID176_PATH)
     return LID176_PATH
 
 
+def download_model():
+    """显式下载 lid.176 到本地（构建镜像/制品时调用，避免运行时隐式联网下载）。"""
+    path = _ensure_model_file(allow_download=True)
+    size = os.path.getsize(path)
+    if size < 100_000:                      # 压缩版约 ~938KB，过小说明下载不完整
+        raise IOError("模型文件异常(仅 %d 字节)，可能下载不完整: %s" % (size, path))
+    return path
+
+
 def get_model():
-    """懒加载 fasttext 模型；首次调用会自动下载（约 1MB 的压缩版）。"""
+    """懒加载 fasttext 模型；若本地缺失则下载（生产建议预先 warmup/打包）。"""
     global _MODEL
     if _MODEL is None:
         import fasttext
         fasttext.FastText.eprint = lambda *a, **k: None
         _MODEL = fasttext.load_model(_ensure_model_file())
     return _MODEL
+
+
+def warmup():
+    """启动预热：加载模型（触发一次下载/载入），避免首个请求的冷启动延迟。
+    返回用到的模型列表。"""
+    get_model()
+    used = ["fasttext"]
+    if cld3_available():
+        used.append("cld3")
+    return used
 
 
 def model_predict(text, k=5):

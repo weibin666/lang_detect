@@ -18,7 +18,7 @@ import intervene
 import rules
 from dedup_repeats import collapse_repeats, strip_digits as _strip_digits
 from detector import model_fallback
-from config import CHUNK_SIZE, DEFAULT_MIN_REPEATS
+from config import CHUNK_SIZE, DEFAULT_MIN_REPEATS, RELIABLE_CONF
 from normalize import sanitize as _sanitize, is_url_email_only
 from config import URL_EMAIL_LANG
 from rules.script_utils import script_counts
@@ -115,10 +115,50 @@ def _vote(chunk_results, chunks):
 
 
 # ---------------------------------------------------------------------------
+# 可靠性：能否信任到“可直接据此自动翻译”
+# ---------------------------------------------------------------------------
+# 这些方法是“非自然语言的兜底默认”，不算可靠的语言判定
+_FALLBACK_METHODS = {
+    "rule:empty", "rule:url_email", "rule:numeric_dot",
+    "rule:reconcile_latin_en", "rule:reconcile_script_latin",
+}
+
+
+def _is_reliable(r):
+    if r.get("lang") in (None, "und"):
+        return False
+    if r.get("method") in _FALLBACK_METHODS:
+        return False
+    if r.get("detect_type") == "model":
+        return r.get("confidence", 0.0) >= RELIABLE_CONF
+    return True   # intervene / dict / 脚本类规则：命中即视为可靠
+
+
+# ---------------------------------------------------------------------------
 # 对外主入口
 # ---------------------------------------------------------------------------
-def detect(text, dedup=True, min_repeats=None, use_opencc=None, strip_digits=True,
-           sanitize=True):
+def _language_breakdown(r):
+    """标准化的多语种占比输出 [{lang, proportion}]，降序。
+    超长分块时取投票占比（真实混合分布）；否则单一语种占比 1.0。"""
+    votes = r.get("votes")
+    if votes:
+        return [{"lang": v["lang"], "proportion": v["share"]} for v in votes]
+    return [{"lang": r["lang"], "proportion": 1.0}]
+
+
+def detect(text, **kwargs):
+    """对外入口：核心检测 + 统一补齐 reliable / languages / candidates 字段。"""
+    r = _detect_core(text, **kwargs)
+    r["reliable"] = _is_reliable(r)
+    r["languages"] = _language_breakdown(r)
+    # 统一始终带候选：规则/词表/干预路径没有模型候选时，用主结果占位
+    if not r.get("candidates"):
+        r["candidates"] = [(r["lang"], r["confidence"])]
+    return r
+
+
+def _detect_core(text, dedup=True, min_repeats=None, use_opencc=None, strip_digits=True,
+                 sanitize=True):
     if min_repeats is None:
         min_repeats = DEFAULT_MIN_REPEATS
 

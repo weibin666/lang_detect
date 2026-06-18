@@ -22,7 +22,15 @@ detect_one(text)  —— 顺序执行，第一个命中即返回，并打 detect
  4. 模型   detector    fasttext lid.176 + 低资源级联(custom33 / langid)            detect_type=model
 ```
 
-返回 dict 关键字段：`lang / confidence / detect_type / method / note / scripts / cleaned_text / chunks`；分块时还有 `votes`（各语种票重与占比）。
+返回 dict 关键字段：`lang / confidence / detect_type / method / note / scripts / cleaned_text / chunks`；
+另有 `reliable`（能否信任到可直接据此自动翻译；非自然语言默认/低置信模型/und 为 false）、
+`languages`（`[{lang,proportion}]` 多语种占比，混合长文取分块投票分布）、
+`candidates`（始终带的候选列表）；分块时还有 `votes`。
+
+### 模型与服务（对标谷歌的工程化）
+- **可选 CLD3 集成**：装了 `gcld3`/`pycld3` 即自动与 fasttext 集成投票（短文本更稳、原生 zh-Hant），未装优雅降级。
+- **模型自包含**：`detector.download_model()` 显式下载+体积校验（构建镜像时调用，避免运行时隐式联网）；`detector.warmup()` 启动预热，服务导入时自动调用。
+- 生产部署用 `gunicorn app:app -w N`（导入即预热各 worker）。
 
 ## 各层说明
 
