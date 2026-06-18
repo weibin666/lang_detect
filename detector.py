@@ -44,11 +44,86 @@ def model_predict(text, k=5):
     return [(lab.replace("__label__", ""), float(p)) for lab, p in zip(labels, probs)]
 
 
+# ---------------------------------------------------------------------------
+# CLD3（可选）：装了 gcld3 / pycld3 就自动参与集成，否则优雅降级为只用 fasttext。
+# CLD3 在短文本上更稳，且自带 is_reliable / 原生 zh-Hant。
+# ---------------------------------------------------------------------------
+_CLD3 = None
+_CLD3_TRIED = False
+
+
+def _get_cld3():
+    global _CLD3, _CLD3_TRIED
+    if _CLD3_TRIED:
+        return _CLD3
+    _CLD3_TRIED = True
+    try:
+        import gcld3  # 优先 gcld3
+        _CLD3 = gcld3.NNetLanguageIdentifier(min_num_bytes=0, max_num_bytes=2000)
+        _CLD3_KIND = "gcld3"
+    except Exception:
+        try:
+            import cld3  # pycld3
+            _CLD3 = cld3
+            _CLD3_KIND = "pycld3"
+        except Exception:
+            _CLD3 = None
+    _get_cld3.kind = locals().get("_CLD3_KIND")
+    return _CLD3
+
+
+def cld3_available():
+    return _get_cld3() is not None
+
+
+def cld3_predict(text, k=5):
+    """返回 [(lang, prob), ...]；CLD3 不可用时返回 None。"""
+    c = _get_cld3()
+    if c is None:
+        return None
+    one_line = (text or "").replace("\n", " ").strip()
+    try:
+        out = []
+        if getattr(_get_cld3, "kind", None) == "gcld3":
+            for r in c.FindTopNMostFreqLangs(one_line, k):
+                if r and r.language and r.language != "und":
+                    out.append((r.language, float(r.probability)))
+        else:  # pycld3
+            for r in c.get_frequent_languages(one_line, num_langs=k):
+                if r and r.language and r.language != "und":
+                    out.append((r.language, float(r.probability)))
+        return out or None
+    except Exception:
+        return None
+
+
+def _merge_predictions(ft, c3, w_ft=1.0, w_c3=1.0):
+    """把两个模型的候选按归一化加权得分合并，返回降序 [(lang, score)]。"""
+    def _norm(cands):
+        s = sum(p for _, p in cands) or 1.0
+        return {l: p / s for l, p in cands}
+    a, b = _norm(ft or []), _norm(c3 or [])
+    langs = set(a) | set(b)
+    merged = {l: w_ft * a.get(l, 0.0) + w_c3 * b.get(l, 0.0) for l in langs}
+    total = sum(merged.values()) or 1.0
+    return sorted(((l, v / total) for l, v in merged.items()),
+                  key=lambda kv: kv[1], reverse=True)
+
+
+def ensemble_predict(text, k=5):
+    """fasttext（+ 可选 CLD3）集成预测。返回 (cands, used_models)。"""
+    ft = model_predict(text, k=k)
+    c3 = cld3_predict(text, k=k)
+    if not c3:
+        return ft, ["fasttext"]
+    return _merge_predictions(ft, c3), ["fasttext", "cld3"]
+
+
 def model_fallback(text):
     """模型兜底。返回 detect_type='model' 的结果 dict。"""
     counts = script_counts(text)
     try:
-        cands = model_predict(text, k=5)
+        cands, used = ensemble_predict(text, k=5)
     except Exception as e:
         return {"lang": "und", "confidence": 0.0, "detect_type": "model",
                 "method": "model:error", "note": "模型不可用: %s" % e, "scripts": counts}
@@ -56,6 +131,7 @@ def model_fallback(text):
         return {"lang": "und", "confidence": 0.0, "detect_type": "model",
                 "method": "model:empty", "scripts": counts}
 
+    model_method = "model:" + "+".join(used)   # model:fasttext 或 model:fasttext+cld3
     top1 = cands[0]
 
     # ru/uk 易混：模型 top1/top2 同为 {ru, uk} -> 混合，用特征字母挑主语种
@@ -84,5 +160,5 @@ def model_fallback(text):
         return rec
 
     return {"lang": top1[0], "confidence": round(top1[1], 4),
-            "detect_type": "model", "method": "model:fasttext",
+            "detect_type": "model", "method": model_method,
             "candidates": cands, "note": "", "scripts": counts}
