@@ -14,9 +14,9 @@ needs_model = pytest.mark.skipif(not os.path.exists(LID176_PATH),
 def test_benchmark_accuracy_gate():
     from benchmark.evaluate import run_eval
     m = run_eval()
-    assert m["n"] >= 50
-    assert m["accuracy"] >= 0.90, "总准确率回退到 %.3f" % m["accuracy"]
-    assert m["macro_f1"] >= 0.88, "宏F1回退到 %.3f" % m["macro_f1"]
+    assert m["n"] >= 150
+    assert m["accuracy"] >= 0.95, "总准确率回退到 %.3f" % m["accuracy"]
+    assert m["macro_f1"] >= 0.94, "宏F1回退到 %.3f" % m["macro_f1"]
 
 
 @needs_model

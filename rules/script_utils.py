@@ -173,13 +173,15 @@ def looks_english(text):
     需命中 >= 2 个**不同**英文停用词：避免被西/法等共享虚词（如 "a"）误触发——
     例 "voy a visitar a mis padres" 只命中 "a"(1个不同词)，不应判英文。
     """
-    words = re.findall(r"[a-zA-Z']+", text.lower())
+    # 用 Unicode 词正则，避免把 "días" 切成 "d"+"as"（"as" 恰是英文停用词造成误判）
+    words = re.findall(r"[^\W\d_]+", text.lower(), re.UNICODE)
     if not words:
         return False, 0.0
     matched = {w for w in words if w in _EN_STOPWORDS}
     hits = sum(1 for w in words if w in _EN_STOPWORDS)
     ratio = hits / len(words)
-    return (len(words) >= 2 and len(matched) >= 2 and ratio >= 0.15), ratio
+    # 需 >=2 个不同停用词 且 占比 >=0.25，避免西/法等共享虚词(a/he/me)误判英文
+    return (len(words) >= 2 and len(matched) >= 2 and ratio >= 0.25), ratio
 
 
 # 中文营销文案里常被借用的少量假名（の 之类），不据此判日语

@@ -70,3 +70,128 @@
 {"text": "Zentax Qorvi Blixar", "lang": "en", "tags": ["badcase", "gibberish"]}
 {"text": "😀🎉🚀", "lang": "und", "tags": ["badcase", "emoji"]}
 {"text": "...!!!", "lang": "und", "tags": ["badcase", "punct"]}
+{"text": "这部电影的剧情非常精彩值得一看", "lang": "zh", "tags": ["core"]}
+{"text": "我昨天去超市买了很多水果和蔬菜", "lang": "zh", "tags": ["core"]}
+{"text": "公司下周要召开一个重要的会议", "lang": "zh", "tags": ["core"]}
+{"text": "学习一门新的语言需要长期坚持", "lang": "zh", "tags": ["core"]}
+{"text": "他每天早上都会去跑步锻炼身体", "lang": "zh", "tags": ["core"]}
+{"text": "这本小说我已经读了三遍还是很喜欢", "lang": "zh", "tags": ["core"]}
+{"text": "周末我们打算去爬山欣赏风景", "lang": "zh", "tags": ["core"]}
+{"text": "网上购物已经成为很多人的习惯", "lang": "zh", "tags": ["core"]}
+{"text": "医生建议他多休息少熬夜", "lang": "zh", "tags": ["core"]}
+{"text": "这道菜的做法其实并不复杂", "lang": "zh", "tags": ["core"]}
+{"text": "這部電影的劇情非常精彩值得一看", "lang": "zh-Hant", "tags": ["core"]}
+{"text": "我昨天去超市買了很多水果和蔬菜", "lang": "zh-Hant", "tags": ["core"]}
+{"text": "公司下週要召開一個重要的會議", "lang": "zh-Hant", "tags": ["core"]}
+{"text": "學習一門新的語言需要長期堅持", "lang": "zh-Hant", "tags": ["core"]}
+{"text": "他每天早上都會去跑步鍛鍊身體", "lang": "zh-Hant", "tags": ["core"]}
+{"text": "這本小說我已經讀了三遍還是很喜歡", "lang": "zh-Hant", "tags": ["core"]}
+{"text": "週末我們打算去爬山欣賞風景", "lang": "zh-Hant", "tags": ["core"]}
+{"text": "網路購物已經成為很多人的習慣", "lang": "zh-Hant", "tags": ["core"]}
+{"text": "醫生建議他多休息少熬夜", "lang": "zh-Hant", "tags": ["core"]}
+{"text": "這道菜的做法其實並不複雜", "lang": "zh-Hant", "tags": ["core"]}
+{"text": "この映画のストーリーはとても面白いです", "lang": "ja", "tags": ["core"]}
+{"text": "昨日スーパーで果物と野菜をたくさん買いました", "lang": "ja", "tags": ["core"]}
+{"text": "来週会社で大切な会議があります", "lang": "ja", "tags": ["core"]}
+{"text": "新しい言語を学ぶには長い時間がかかります", "lang": "ja", "tags": ["core"]}
+{"text": "彼は毎朝走って体を鍛えています", "lang": "ja", "tags": ["core"]}
+{"text": "この小説はもう三回読みましたが好きです", "lang": "ja", "tags": ["core"]}
+{"text": "週末は山に登って景色を楽しむ予定です", "lang": "ja", "tags": ["core"]}
+{"text": "ネットショッピングは多くの人の習慣になりました", "lang": "ja", "tags": ["core"]}
+{"text": "医者は彼にもっと休むように言いました", "lang": "ja", "tags": ["core"]}
+{"text": "料理の作り方は実は難しくないです", "lang": "ja", "tags": ["core"]}
+{"text": "이 영화의 줄거리는 정말 재미있어요", "lang": "ko", "tags": ["core"]}
+{"text": "어제 마트에서 과일과 채소를 많이 샀어요", "lang": "ko", "tags": ["core"]}
+{"text": "다음 주에 회사에서 중요한 회의가 있어요", "lang": "ko", "tags": ["core"]}
+{"text": "새로운 언어를 배우려면 오랜 시간이 걸려요", "lang": "ko", "tags": ["core"]}
+{"text": "그는 매일 아침 달리기를 하며 운동해요", "lang": "ko", "tags": ["core"]}
+{"text": "이 소설은 벌써 세 번이나 읽었어요", "lang": "ko", "tags": ["core"]}
+{"text": "주말에 우리는 등산을 가기로 했어요", "lang": "ko", "tags": ["core"]}
+{"text": "온라인 쇼핑은 많은 사람들의 습관이 되었어요", "lang": "ko", "tags": ["core"]}
+{"text": "의사가 그에게 푹 쉬라고 했어요", "lang": "ko", "tags": ["core"]}
+{"text": "이 요리의 조리법은 사실 복잡하지 않아요", "lang": "ko", "tags": ["core"]}
+{"text": "the movie has a very interesting plot worth watching", "lang": "en", "tags": ["core"]}
+{"text": "i bought a lot of fruits and vegetables at the store", "lang": "en", "tags": ["core"]}
+{"text": "the company will hold an important meeting next week", "lang": "en", "tags": ["core"]}
+{"text": "learning a new language takes a long time and effort", "lang": "en", "tags": ["core"]}
+{"text": "he goes running every morning to stay in good shape", "lang": "en", "tags": ["core"]}
+{"text": "i have read this novel three times and still love it", "lang": "en", "tags": ["core"]}
+{"text": "we are planning to go hiking this weekend", "lang": "en", "tags": ["core"]}
+{"text": "online shopping has become a habit for many people", "lang": "en", "tags": ["core"]}
+{"text": "the doctor advised him to rest more and sleep early", "lang": "en", "tags": ["core"]}
+{"text": "the recipe for this dish is actually not complicated", "lang": "en", "tags": ["core"]}
+{"text": "сюжет этого фильма очень интересный стоит посмотреть", "lang": "ru", "tags": ["core"]}
+{"text": "вчера я купил много фруктов и овощей в магазине", "lang": "ru", "tags": ["core"]}
+{"text": "на следующей неделе у компании важное совещание", "lang": "ru", "tags": ["core"]}
+{"text": "изучение нового языка требует много времени", "lang": "ru", "tags": ["core"]}
+{"text": "он каждое утро бегает чтобы быть в форме", "lang": "ru", "tags": ["core"]}
+{"text": "я прочитал этот роман три раза и всё ещё люблю", "lang": "ru", "tags": ["core"]}
+{"text": "на выходных мы планируем пойти в горы", "lang": "ru", "tags": ["core"]}
+{"text": "покупки в интернете стали привычкой для многих", "lang": "ru", "tags": ["core"]}
+{"text": "врач посоветовал ему больше отдыхать", "lang": "ru", "tags": ["core"]}
+{"text": "рецепт этого блюда на самом деле несложный", "lang": "ru", "tags": ["core"]}
+{"text": "сюжет цього фільму дуже цікавий варто подивитися", "lang": "uk", "tags": ["core"]}
+{"text": "вчора я купив багато фруктів та овочів у магазині", "lang": "uk", "tags": ["core"]}
+{"text": "наступного тижня в компанії важлива нарада", "lang": "uk", "tags": ["core"]}
+{"text": "вивчення нової мови потребує багато часу", "lang": "uk", "tags": ["core"]}
+{"text": "він щоранку бігає щоб бути у формі", "lang": "uk", "tags": ["core"]}
+{"text": "я прочитав цей роман тричі і досі його люблю", "lang": "uk", "tags": ["core"]}
+{"text": "на вихідних ми плануємо піти в гори", "lang": "uk", "tags": ["core"]}
+{"text": "покупки в інтернеті стали звичкою для багатьох", "lang": "uk", "tags": ["core"]}
+{"text": "лікар порадив йому більше відпочивати", "lang": "uk", "tags": ["core"]}
+{"text": "рецепт цієї страви насправді нескладний", "lang": "uk", "tags": ["core"]}
+{"text": "l'intrigue de ce film est très intéressante à voir", "lang": "fr", "tags": ["core"]}
+{"text": "hier j'ai acheté beaucoup de fruits et légumes au marché", "lang": "fr", "tags": ["core"]}
+{"text": "l'entreprise tiendra une réunion importante la semaine prochaine", "lang": "fr", "tags": ["core"]}
+{"text": "apprendre une nouvelle langue demande beaucoup de temps", "lang": "fr", "tags": ["core"]}
+{"text": "il court tous les matins pour rester en forme", "lang": "fr", "tags": ["core"]}
+{"text": "j'ai lu ce roman trois fois et je l'aime toujours", "lang": "fr", "tags": ["core"]}
+{"text": "nous prévoyons de faire de la randonnée ce week-end", "lang": "fr", "tags": ["core"]}
+{"text": "les achats en ligne sont devenus une habitude courante", "lang": "fr", "tags": ["core"]}
+{"text": "le médecin lui a conseillé de se reposer davantage", "lang": "fr", "tags": ["core"]}
+{"text": "la recette de ce plat n'est pas vraiment compliquée", "lang": "fr", "tags": ["core"]}
+{"text": "die handlung dieses films ist sehr interessant", "lang": "de", "tags": ["core"]}
+{"text": "gestern habe ich viel obst und gemüse gekauft", "lang": "de", "tags": ["core"]}
+{"text": "das unternehmen hält nächste woche eine wichtige sitzung", "lang": "de", "tags": ["core"]}
+{"text": "eine neue sprache zu lernen braucht viel zeit", "lang": "de", "tags": ["core"]}
+{"text": "er geht jeden morgen laufen um fit zu bleiben", "lang": "de", "tags": ["core"]}
+{"text": "ich habe diesen roman dreimal gelesen und liebe ihn", "lang": "de", "tags": ["core"]}
+{"text": "wir planen am wochenende wandern zu gehen", "lang": "de", "tags": ["core"]}
+{"text": "online einkaufen ist für viele zur gewohnheit geworden", "lang": "de", "tags": ["core"]}
+{"text": "der arzt riet ihm sich mehr auszuruhen", "lang": "de", "tags": ["core"]}
+{"text": "das rezept für dieses gericht ist nicht kompliziert", "lang": "de", "tags": ["core"]}
+{"text": "la trama de esta película es muy interesante", "lang": "es", "tags": ["core"]}
+{"text": "ayer compré muchas frutas y verduras en el mercado", "lang": "es", "tags": ["core"]}
+{"text": "la empresa tendrá una reunión importante la próxima semana", "lang": "es", "tags": ["core"]}
+{"text": "aprender un idioma nuevo requiere mucho tiempo", "lang": "es", "tags": ["core"]}
+{"text": "él sale a correr todas las mañanas para estar en forma", "lang": "es", "tags": ["core"]}
+{"text": "he leído esta novela tres veces y todavía me gusta", "lang": "es", "tags": ["core"]}
+{"text": "planeamos ir de excursión este fin de semana", "lang": "es", "tags": ["core"]}
+{"text": "las compras en línea se han vuelto un hábito común", "lang": "es", "tags": ["core"]}
+{"text": "el médico le aconsejó descansar más", "lang": "es", "tags": ["core"]}
+{"text": "la receta de este plato no es complicada", "lang": "es", "tags": ["core"]}
+{"text": "เนื้อเรื่องของหนังเรื่องนี้น่าสนใจมาก", "lang": "th", "tags": ["core"]}
+{"text": "เมื่อวานฉันซื้อผลไม้และผักเยอะมาก", "lang": "th", "tags": ["core"]}
+{"text": "สัปดาห์หน้าบริษัทจะมีการประชุมสำคัญ", "lang": "th", "tags": ["core"]}
+{"text": "การเรียนภาษาใหม่ต้องใช้เวลานาน", "lang": "th", "tags": ["core"]}
+{"text": "เขาวิ่งทุกเช้าเพื่อให้ร่างกายแข็งแรง", "lang": "th", "tags": ["core"]}
+{"text": "ฉันอ่านนิยายเล่มนี้สามรอบแล้วยังชอบอยู่", "lang": "th", "tags": ["core"]}
+{"text": "สุดสัปดาห์นี้เราวางแผนจะไปเดินป่า", "lang": "th", "tags": ["core"]}
+{"text": "การช็อปปิ้งออนไลน์กลายเป็นนิสัยของหลายคน", "lang": "th", "tags": ["core"]}
+{"text": "หมอแนะนำให้เขาพักผ่อนมากขึ้น", "lang": "th", "tags": ["core"]}
+{"text": "วิธีทำอาหารจานนี้จริงๆแล้วไม่ยาก", "lang": "th", "tags": ["core"]}
+{"text": "谢谢你的帮助", "lang": "zh", "tags": ["short"]}
+{"text": "早上好啊", "lang": "zh", "tags": ["short"]}
+{"text": "こんにちは", "lang": "ja", "tags": ["short"]}
+{"text": "さようなら", "lang": "ja", "tags": ["short"]}
+{"text": "안녕히 가세요", "lang": "ko", "tags": ["short"]}
+{"text": "good morning everyone", "lang": "en", "tags": ["short"]}
+{"text": "guten tag zusammen", "lang": "de", "tags": ["short"]}
+{"text": "buenos días a todos", "lang": "es", "tags": ["short"]}
+{"text": "доброе утро всем", "lang": "ru", "tags": ["short"]}
+{"text": "www.example.org", "lang": "en", "tags": ["badcase", "url"]}
+{"text": "john.doe@company.co.uk", "lang": "en", "tags": ["badcase", "email"]}
+{"text": "3.14159", "lang": "en", "tags": ["badcase", "numeric"]}
+{"text": "100200300", "lang": "en", "tags": ["badcase", "numeric"]}
+{"text": "???", "lang": "und", "tags": ["badcase", "punct"]}
+{"text": "🔥🔥🔥", "lang": "und", "tags": ["badcase", "emoji"]}

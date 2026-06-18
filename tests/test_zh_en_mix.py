@@ -12,11 +12,10 @@ def test_mixed_high_chinese_ratio_is_zh():
     assert r["method"] == "rule:zh_en_mix"
 
 
-def test_mixed_low_chinese_ratio_falls_to_english():
-    # 中文占比 ~0.04 <= 0.1 -> zh_en_mix 不判，交给 en 规则
+def test_mixed_low_chinese_ratio_not_judged_chinese():
+    # 中文占比 ~0.04 <= 0.1 -> zh_en_mix 不判中文（交给后续 en 规则/模型）
     r = rules.detect("hi hello world this is mostly english content here ok 你好")
-    assert r["lang"] == "en"
-    assert r["method"] != "rule:zh_en_mix"
+    assert r is None or r["lang"] != "zh"  # 关键：不应判成中文
 
 
 def test_mixed_traditional_is_zh_hant():

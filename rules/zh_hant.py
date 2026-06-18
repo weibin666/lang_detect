@@ -14,11 +14,14 @@ def detect(f):
     han = f["han"]
     if han == 0 or han < max(f["cyr"], f["latin"], f["hangul"]):
         return None
-    ratio = f["trad_ratio"]
-    if ratio <= TRAD_RATIO:
+    trad, simp, ratio = f["trad_unique"], f["simp_unique"], f["trad_ratio"]
+    # 命中繁体的两种情形（简繁混合由 zh_hant_mix 在更前面处理）：
+    #   1) 繁体独有字占比高 (> TRAD_RATIO)；
+    #   2) 出现繁体独有字且无任何简体独有字 —— 低密度繁体也可靠（简体不会用繁体形）。
+    if not (ratio > TRAD_RATIO or (trad > 0 and simp == 0)):
         return None
     conf = min(0.99, 0.7 + ratio * 0.25)
     return {"lang": "zh-Hant", "confidence": round(conf, 4),
             "detect_type": "rule", "method": "rule:" + NAME,
-            "note": "繁体独有字占比 %.0f%%（繁%d / 汉字%d）" % (
-                ratio * 100, f["trad_unique"], han)}
+            "note": "繁体独有字 %d / 简体独有字 %d / 汉字 %d（占比%.0f%%）" % (
+                trad, simp, han, ratio * 100)}
