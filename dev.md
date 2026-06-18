@@ -125,7 +125,7 @@
 | 5. Aho-Corasick 匹配 | P1 | TODO | | |
 | 6. 结果缓存 | P1 | TODO | | |
 | 7. 去重计算 + batch | P1 | TODO | | |
-| 8. 评测基准 | P1 | TODO | | 建议最先做 |
+| 8. 评测基准 | P1 | ✅ 完成 | | benchmark/：标注集+evaluate+sweep+回归门禁 |
 | 9. BCP-47 代码对齐 | P1 | TODO | | |
 | 10. 库/服务分离 + 打包 | P2 | TODO | | |
 | 11. 可观测 + 数据闭环 | P2 | TODO | | |
